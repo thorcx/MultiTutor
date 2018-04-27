@@ -82,10 +82,14 @@ private:
 
 
 	//油门
+	//为了在ListenServer上尽可能接近的反应用户的输入，将油门与方向盘都同步
+	UPROPERTY(replicated)
 	float Throttle;
 
+	UPROPERTY(replicated)
 	float steeringThrow;
 	
+	UPROPERTY(replicated)
 	FVector Velocity;
 
 	//UPROPERTY(ReplicatedUsing= OnRep_ReplicatedTransform)

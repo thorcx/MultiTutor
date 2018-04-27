@@ -17,6 +17,9 @@ void ADemoCar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ADemoCar, ReplicatedTransform);
+	DOREPLIFETIME(ADemoCar, Velocity);
+	DOREPLIFETIME(ADemoCar, Throttle);
+	DOREPLIFETIME(ADemoCar, steeringThrow);
 	//DOREPLIFETIME(ADemoCar, ReplicatedLocation);
 	//DOREPLIFETIME(ADemoCar, ReplicatedRotation);
 }
