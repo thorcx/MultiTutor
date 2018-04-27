@@ -1,8 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "DemoCar.h"
 #include "Components/InputComponent.h"
-
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
 // Sets default values
 ADemoCar::ADemoCar()
 {
@@ -18,6 +19,23 @@ void ADemoCar::BeginPlay()
 	
 }
 
+FString GetEnumText(ENetRole Role)
+{
+	switch (Role)
+	{
+	case ROLE_None:
+		return "None";
+	case ROLE_SimulatedProxy:
+		return "SimulatedProxy";
+	case ROLE_Authority:
+		return "Authority";
+	case ROLE_AutonomousProxy:
+		return "AutonomousProxy";
+	default:
+		return "Error";
+	}
+}
+
 // Called every frame
 void ADemoCar::Tick(float DeltaTime)
 {
@@ -25,31 +43,51 @@ void ADemoCar::Tick(float DeltaTime)
 
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
 
-	Force += GetResistance();
+	Force += GetAirResistance();
+
+	Force += GetRollingResistance();
 
 	FVector Acceleration = Force / Mass;
 
 	Velocity += Acceleration * DeltaTime;
 
-	
+	//UE_LOG(LogTemp, Warning, TEXT("Gravity is %f"), GetWorld()->GetGravityZ());
+
+	//float g = -GetWorld()->GetGravityZ() / 100;
 
 	ApplyRotation(DeltaTime);
 
 
 	UpdateLocation(DeltaTime);
 
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Red, DeltaTime);
+
 }
 
-FVector ADemoCar::GetResistance()
+FVector ADemoCar::GetAirResistance()
 {
 	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
 }
 
+FVector ADemoCar::GetRollingResistance()
+{
+	float g = -GetWorld()->GetGravityZ() / 100;
+	float NormalForce = Mass * g;
+	return -Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
+}
+
 void ADemoCar::ApplyRotation(float DeltaTime)
 {
-	float RotationAngle = MaxDegreesPerSecond * DeltaTime *steeringThrow;
+	//float RotationAngle = MaxDegreesPerSecond * DeltaTime *steeringThrow;
 
-	FQuat RotationDelta(GetActorUpVector(), FMath::DegreesToRadians(RotationAngle));
+	//这里的公式是∆x = ∆(θ) * r;注意这里求出的theta 已经是弧度了
+	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
+
+	float RotationAngle = DeltaLocation / MinTurningRadius * steeringThrow;
+
+	UE_LOG(LogTemp, Warning, TEXT("Rot angle is %f"), RotationAngle);
+
+	FQuat RotationDelta(GetActorUpVector(), RotationAngle);
 
 	Velocity = RotationDelta.RotateVector(Velocity);
 
@@ -81,9 +119,31 @@ void ADemoCar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ADemoCar::MoveForward(float value)
 {
 	Throttle = value;
+	Server_MoveForward(value);
 }
 
 void ADemoCar::MoveRight(float value)
 {
 	steeringThrow = value;
+	Server_MoveRight(value);
 }
+
+void ADemoCar::Server_MoveForward_Implementation(float value)
+{
+	Throttle = value;
+}
+bool ADemoCar::Server_MoveForward_Validate(float value)
+{
+	return FMath::Abs(value) <= 1.0f;
+}
+
+void ADemoCar::Server_MoveRight_Implementation(float value)
+{
+	steeringThrow = value;
+}
+
+bool ADemoCar::Server_MoveRight_Validate(float value)
+{
+	return FMath::Abs(value) <= 1.0f;
+}
+
