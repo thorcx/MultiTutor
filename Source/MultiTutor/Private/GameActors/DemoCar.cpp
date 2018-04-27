@@ -16,7 +16,9 @@ ADemoCar::ADemoCar()
 void ADemoCar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ADemoCar, ReplicatedLocation);
+	DOREPLIFETIME(ADemoCar, ReplicatedTransform);
+	//DOREPLIFETIME(ADemoCar, ReplicatedLocation);
+	//DOREPLIFETIME(ADemoCar, ReplicatedRotation);
 }
 
 
@@ -24,7 +26,10 @@ void ADemoCar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 void ADemoCar::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (HasAuthority())
+	{
+		NetUpdateFrequency = 1;
+	}
 }
 
 //Debug用
@@ -71,13 +76,16 @@ void ADemoCar::Tick(float DeltaTime)
 
 	if (HasAuthority())
 	{
-		ReplicatedLocation = GetActorLocation();
-		ReplicatedRotation = GetActorRotation();
+		//ReplicatedLocation = GetActorLocation();
+		//ReplicatedRotation = GetActorRotation();
+		ReplicatedTransform = GetActorTransform();
 	}
-	else {
-		SetActorLocation(ReplicatedLocation);
-		SetActorRotation(ReplicatedRotation);
-	}
+	//else {
+	//	SetActorTransform(ReplicatedTransform);
+
+	//	//SetActorLocation(ReplicatedLocation);
+	//	//SetActorRotation(ReplicatedRotation);
+	//}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Red, DeltaTime);
 
@@ -111,6 +119,14 @@ void ADemoCar::ApplyRotation(float DeltaTime)
 	Velocity = RotationDelta.RotateVector(Velocity);
 
 	AddActorWorldRotation(RotationDelta);
+}
+
+//在Tick内服务器更新位置，每间隔1段时间发送一个同步位置回客户端，客户端在间隔期内依赖自己的Tick更新位置，当
+//RepNofity回来后，刷新服务器位置来同步一次
+void ADemoCar::OnRep_ReplicatedTransform()
+{
+	SetActorTransform(ReplicatedTransform);
+	UE_LOG(LogTemp, Warning, TEXT("Replicated Location"));
 }
 
 void ADemoCar::UpdateLocation(float DeltaTime)

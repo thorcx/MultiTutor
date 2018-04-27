@@ -88,8 +88,14 @@ private:
 	
 	FVector Velocity;
 
-	UPROPERTY(replicated)
-	FVector ReplicatedLocation;
+	//UPROPERTY(ReplicatedUsing= OnRep_ReplicatedTransform)
+	//FVector ReplicatedLocation;
+
+	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTransform)
+	FTransform ReplicatedTransform;
+
+	UFUNCTION()
+	void OnRep_ReplicatedTransform();
 
 	UPROPERTY(replicated)
 	FRotator ReplicatedRotation;
