@@ -4,13 +4,21 @@
 #include "Components/InputComponent.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "UnrealNetwork.h"
 // Sets default values
 ADemoCar::ADemoCar()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	bReplicates = true;
 }
+
+void ADemoCar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADemoCar, ReplicatedLocation);
+}
+
 
 // Called when the game starts or when spawned
 void ADemoCar::BeginPlay()
@@ -19,6 +27,7 @@ void ADemoCar::BeginPlay()
 	
 }
 
+//Debug用
 FString GetEnumText(ENetRole Role)
 {
 	switch (Role)
@@ -59,6 +68,16 @@ void ADemoCar::Tick(float DeltaTime)
 
 
 	UpdateLocation(DeltaTime);
+
+	if (HasAuthority())
+	{
+		ReplicatedLocation = GetActorLocation();
+		ReplicatedRotation = GetActorRotation();
+	}
+	else {
+		SetActorLocation(ReplicatedLocation);
+		SetActorRotation(ReplicatedRotation);
+	}
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::Red, DeltaTime);
 
