@@ -6,6 +6,40 @@
 #include "GameFramework/Pawn.h"
 #include "DemoCar.generated.h"
 
+//客户端预测要发送到服务器的Move
+USTRUCT()
+struct FDemoCarMove
+{
+	GENERATED_USTRUCT_BODY()
+	
+	UPROPERTY()
+	float Throttle;
+	UPROPERTY()
+	float steeringThrow;
+	UPROPERTY()
+	float DeltaTime;
+	
+	//时间戳
+	UPROPERTY()
+	float Time;
+};
+
+//服务器返回客户端的最新模拟后的状态
+USTRUCT()
+struct FDemoCarState
+{
+	GENERATED_USTRUCT_BODY()
+
+	FDemoCarMove LastMove;
+	
+	UPROPERTY()
+	FVector Velocity;
+	
+	UPROPERTY()
+	FTransform Transform;
+};
+
+
 UCLASS()
 class MULTITUTOR_API ADemoCar : public APawn
 {
@@ -89,6 +123,7 @@ private:
 	UPROPERTY(replicated)
 	float steeringThrow;
 	
+	//车的速度，矢量
 	UPROPERTY(replicated)
 	FVector Velocity;
 
