@@ -44,6 +44,8 @@ private:
 	//从未响应列表中清除已经从服务器上获得的Move数据
 	void ClearAcknowledgeMoves(FDemoCarMove LastMove);
 	
+	void UpdateServerState(const FDemoCarMove& Move);
+
 	//客户端发起RPC,服务器端执行，服务器获得Move信息
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FDemoCarMove Move);

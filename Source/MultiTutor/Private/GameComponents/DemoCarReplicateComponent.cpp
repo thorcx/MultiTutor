@@ -37,16 +37,13 @@ void UDemoCarReplicateComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	if (MovementComponent == nullptr) return;
 	if (GetOwnerRole() == ROLE_AutonomousProxy)
 	{
-		FDemoCarMove Move = MovementComponent->CreateMove(DeltaTime);
-		UnacknowledgedMoves.Add(Move);
-		MovementComponent->SimulateMove(Move);
-		Server_SendMove(Move);
+		UnacknowledgedMoves.Add(MovementComponent->GetLastMove());
+		Server_SendMove(MovementComponent->GetLastMove());
 	}
 	//代表当前代码在Server端，并且是正在屏幕上控制的角色
-	if (GetOwnerRole()== ROLE_Authority && GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	if ( GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
 	{
-		FDemoCarMove Move = MovementComponent->CreateMove(DeltaTime);
-		Server_SendMove(Move);
+		UpdateServerState(MovementComponent->GetLastMove());
 	}
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy)
@@ -72,6 +69,13 @@ void UDemoCarReplicateComponent::ClearAcknowledgeMoves(FDemoCarMove LastMove)
 	UnacknowledgedMoves = NewMoves;
 }
 
+void UDemoCarReplicateComponent::UpdateServerState(const FDemoCarMove& Move)
+{
+	ServerState.LastMove = Move;
+	ServerState.Transform = GetOwner()->GetActorTransform();
+	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
 //这里的代码总是在服务器上执行
 void UDemoCarReplicateComponent::Server_SendMove_Implementation(FDemoCarMove Move)
 {
@@ -84,11 +88,9 @@ void UDemoCarReplicateComponent::Server_SendMove_Implementation(FDemoCarMove Mov
 	MovementComponent->SimulateMove(Move);
 	//完成模拟后，将服务器状态发送回Client
 	//注意这里不再需要单独Replicate Throttle,SteerThrow变量
-	ServerState.LastMove = Move;
-	ServerState.Transform = GetOwner()->GetActorTransform();
-	ServerState.Velocity = MovementComponent->GetVelocity();
+	UpdateServerState(Move);
 
-	//UE_LOG(LogTemp, Warning, TEXT("ServerState Velocity is %f,%f,%f"), Velocity.X, Velocity.Y,Velocity.Z);
+	
 }
 
 bool UDemoCarReplicateComponent::Server_SendMove_Validate(FDemoCarMove Move)
@@ -99,7 +101,7 @@ bool UDemoCarReplicateComponent::Server_SendMove_Validate(FDemoCarMove Move)
 
 void UDemoCarReplicateComponent::OnRep_ServerState()
 {
-
+	if (MovementComponent == nullptr) return;
 	GetOwner()->SetActorTransform(ServerState.Transform);
 	MovementComponent->SetVelocity(ServerState.Velocity);
 	//UE_LOG(LogTemp, Warning, TEXT("From Server time is %f"), ServerState.LastMove.Time);

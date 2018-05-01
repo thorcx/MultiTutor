@@ -28,10 +28,12 @@ void UDemoCarMoveComponent::BeginPlay()
 void UDemoCarMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-
-	/*FDemoCarMove Move = CreateMove(DeltaTime);
-	SimulateMove(Move);*/
+	//注意这里在与ReplicateComponent解耦合的时候，将多人条件下考虑进去，如果是AutonomousProxy,执行模拟
+	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		LastMove = CreateMove(DeltaTime);
+		SimulateMove(LastMove);
+	}
 }
 
 void UDemoCarMoveComponent::SimulateMove(const FDemoCarMove& Move)
