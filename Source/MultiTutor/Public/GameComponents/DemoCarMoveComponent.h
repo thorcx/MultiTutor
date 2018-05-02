@@ -10,17 +10,16 @@ USTRUCT()
 struct FDemoCarMove
 {
 	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY()
-		float Throttle;
+    UPROPERTY()
+	float Throttle;
 	UPROPERTY()
-		float steeringThrow;
+	float steeringThrow;
 	UPROPERTY()
-		float DeltaTime;
+	float DeltaTime;
 
 	//时间戳
 	UPROPERTY()
-		float Time;
+	float Time;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

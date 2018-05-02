@@ -11,6 +11,9 @@ ADemoCar::ADemoCar()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	//去掉UE的自动Rep位置，让RepComponent来做位移Rep的差值计算,这样的好处是我们可以以很低的NetUpdateFrequency来获得相对平滑的服务器到客户端同步
+	//如果不是这样做，除非把NetUpdateFrequency设置的很高，比如1秒100次，否则在客户端上看到的物体位移会出现抖动拉扯.
+	bReplicateMovement = false;
 	MovementComponent = CreateDefaultSubobject<UDemoCarMoveComponent>(TEXT("MovementCompnent"));
 	MovementReplicator = CreateDefaultSubobject<UDemoCarReplicateComponent>(TEXT("MovementReplicator"));
 }

@@ -50,6 +50,8 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FDemoCarMove Move);
 
+	void ClientTick(float DeltaTime);
+	
 	UPROPERTY(replicated)
 	FRotator ReplicatedRotation;
 
@@ -60,10 +62,18 @@ private:
 	UFUNCTION()
 	void OnRep_ServerState();
 
+	void SimulatedProxy_OnRep_ServerState();
+	void AutonomousProxy_OnRep_ServerState();
 
 	//尚未得到服务器响应的Move的集合
 	TArray<FDemoCarMove>	UnacknowledgedMoves;
 
+	float ClientTimeSinceUpdate;
+	float ClientTimeBetweenLastUpdates;
+	FVector ClientStartLocation;
+
+
 	UPROPERTY()
 	UDemoCarMoveComponent*	MovementComponent;
+
 };

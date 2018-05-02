@@ -48,7 +48,8 @@ void UDemoCarReplicateComponent::TickComponent(float DeltaTime, ELevelTick TickT
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy)
 	{
-		MovementComponent->SimulateMove(ServerState.LastMove);
+		//MovementComponent->SimulateMove(ServerState.LastMove);
+		ClientTick(DeltaTime);
 	}
 
 }
@@ -76,6 +77,21 @@ void UDemoCarReplicateComponent::UpdateServerState(const FDemoCarMove& Move)
 	ServerState.Velocity = MovementComponent->GetVelocity();
 }
 
+void UDemoCarReplicateComponent::ClientTick(float DeltaTime)
+{
+	ClientTimeSinceUpdate += DeltaTime;
+	if (ClientTimeBetweenLastUpdates < KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	FVector TargetLocation = ServerState.Transform.GetLocation();
+	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
+	FVector StartLocation = ClientStartLocation;
+	FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
+
+	GetOwner()->SetActorLocation(NewLocation);
+}
+
 //这里的代码总是在服务器上执行
 void UDemoCarReplicateComponent::Server_SendMove_Implementation(FDemoCarMove Move)
 {
@@ -101,6 +117,33 @@ bool UDemoCarReplicateComponent::Server_SendMove_Validate(FDemoCarMove Move)
 
 void UDemoCarReplicateComponent::OnRep_ServerState()
 {
+	//当服务器状态被Rep后，这里区分两种情况，如果是Autonomous_proxy，我们进行unacknowledgeMove的模拟
+	//如果是SimulatedProxy,我们记录下上次收到Update的间隔时间,然后重新开始计时，然后在客户端模拟前两次收到
+	//Server消息的时间间隔内物体的位移，使用Lerp进行线性插值计算,所以这里服务器的信息更新到客户端总是慢一个
+	//ServerUpdate的间隔，虽然同步性稍差些，但是在客户端看物体的位移会很平滑
+	switch (GetOwnerRole())
+	{
+	case ROLE_AutonomousProxy:
+		AutonomousProxy_OnRep_ServerState();
+		break;
+	case ROLE_SimulatedProxy:
+		SimulatedProxy_OnRep_ServerState();
+		break;
+	default:
+		break;
+	}
+
+}
+
+void UDemoCarReplicateComponent::SimulatedProxy_OnRep_ServerState()
+{
+	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
+	ClientTimeSinceUpdate = 0;
+	ClientStartLocation = GetOwner()->GetActorLocation();
+}
+
+void UDemoCarReplicateComponent::AutonomousProxy_OnRep_ServerState()
+{
 	if (MovementComponent == nullptr) return;
 	GetOwner()->SetActorTransform(ServerState.Transform);
 	MovementComponent->SetVelocity(ServerState.Velocity);
@@ -111,5 +154,4 @@ void UDemoCarReplicateComponent::OnRep_ServerState()
 	{
 		MovementComponent->SimulateMove(Move);
 	}
-
 }
