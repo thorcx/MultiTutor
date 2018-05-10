@@ -23,6 +23,27 @@ struct FDemoCarState
 	FTransform Transform;
 };
 
+struct FHermiteCubicSpline
+{
+	FVector StartLocation;
+
+	FVector StartDerivative;
+
+	FVector TargetLocation;
+
+	FVector TargetDerivative;
+
+	FVector InterpolateLocation(float LerpRatio) const
+	{
+		return FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+	FVector InterpolateDerivative(float LerpRatio) const
+	{
+		return FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MULTITUTOR_API UDemoCarReplicateComponent : public UActorComponent
 {
@@ -52,6 +73,18 @@ private:
 
 	void ClientTick(float DeltaTime);
 	
+	float ConvertVelocityToDerivative();
+
+	//创建立方曲线
+	FHermiteCubicSpline CreateSpline();
+	//根据曲线插值位置
+	void InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio);
+	//插值速度
+	void InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio);
+	//插值旋转
+	void InterpolateRotation(float LerpRatio);
+
+
 	UPROPERTY(replicated)
 	FRotator ReplicatedRotation;
 

@@ -86,32 +86,61 @@ void UDemoCarReplicateComponent::ClientTick(float DeltaTime)
 	}
 	if (MovementComponent == nullptr) return;
 
-	FVector TargetLocation = ServerState.Transform.GetLocation();
-	FQuat   TargetRotation = ServerState.Transform.GetRotation();
 	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
-	FVector StartLocation = ClientStartTransform.GetLocation();
-	FQuat	StartRotation = ClientStartTransform.GetRotation();
 	
+	FHermiteCubicSpline Spline = CreateSpline();
+
+	InterpolateLocation(Spline, LerpRatio);
+	
+	InterpolateVelocity(Spline, LerpRatio);
+	
+	InterpolateRotation(LerpRatio);
+
+	
+}
+
+float UDemoCarReplicateComponent::ConvertVelocityToDerivative()
+{
 	//采用立方插值
-
-	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
-
 	//Velocity单位是米/每秒，所有最后要转UE单位centimeter,需乘100
-	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
+	return ClientTimeBetweenLastUpdates * 100;
+}
 
-	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
+FHermiteCubicSpline UDemoCarReplicateComponent::CreateSpline()
+{
+	FHermiteCubicSpline Spline;
 
-	FVector NewLocation = FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
-	
-	FVector NewDerivative = FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
-	FVector NewVelocity = NewDerivative / VelocityToDerivative;
+	Spline.TargetLocation = ServerState.Transform.GetLocation();
+	Spline.StartLocation = ClientStartTransform.GetLocation();
+	//采用立方插值
+	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
+	//Velocity单位是米/每秒，所有最后要转UE单位centimeter,需乘100
+	Spline.StartDerivative = ClientStartVelocity * ConvertVelocityToDerivative();
+	Spline.TargetDerivative = ServerState.Velocity * ConvertVelocityToDerivative();
+
+	return Spline;
+}
+
+void UDemoCarReplicateComponent::InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio)
+{
+	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
+	GetOwner()->SetActorLocation(NewLocation);
+}
+
+void UDemoCarReplicateComponent::InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio)
+{
+	if (MovementComponent == nullptr) return;
+	FVector NewDerivative = Spline.InterpolateDerivative(LerpRatio);
+	FVector NewVelocity = NewDerivative / ConvertVelocityToDerivative();
 
 	MovementComponent->SetVelocity(NewVelocity);
-	//FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
+}
 
+void UDemoCarReplicateComponent::InterpolateRotation(float LerpRatio)
+{
+	FQuat   TargetRotation = ServerState.Transform.GetRotation();
+	FQuat	StartRotation = ClientStartTransform.GetRotation();
 	FQuat   NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
-
-	GetOwner()->SetActorLocation(NewLocation);
 	GetOwner()->SetActorRotation(NewRotation);
 }
 
