@@ -109,4 +109,9 @@ private:
 	UPROPERTY()
 	UDemoCarMoveComponent*	MovementComponent;
 
+	UPROPERTY()
+	USceneComponent*		MeshOffsetRoot;
+
+	UFUNCTION(BlueprintCallable)
+	void SetMeshOffsetRoot(USceneComponent * Root) {MeshOffsetRoot = Root;}
 };

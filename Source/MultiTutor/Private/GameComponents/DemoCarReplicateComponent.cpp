@@ -124,7 +124,11 @@ FHermiteCubicSpline UDemoCarReplicateComponent::CreateSpline()
 void UDemoCarReplicateComponent::InterpolateLocation(const FHermiteCubicSpline &Spline, float LerpRatio)
 {
 	FVector NewLocation = Spline.InterpolateLocation(LerpRatio);
-	GetOwner()->SetActorLocation(NewLocation);
+	/*GetOwner()->SetActorLocation(NewLocation);*/
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldLocation(NewLocation);
+	}
 }
 
 void UDemoCarReplicateComponent::InterpolateVelocity(const FHermiteCubicSpline &Spline, float LerpRatio)
@@ -141,7 +145,12 @@ void UDemoCarReplicateComponent::InterpolateRotation(float LerpRatio)
 	FQuat   TargetRotation = ServerState.Transform.GetRotation();
 	FQuat	StartRotation = ClientStartTransform.GetRotation();
 	FQuat   NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
-	GetOwner()->SetActorRotation(NewRotation);
+
+	if (MeshOffsetRoot != nullptr)
+	{
+		MeshOffsetRoot->SetWorldRotation(NewRotation);
+	}
+	//GetOwner()->SetActorRotation(NewRotation);
 }
 
 //这里的代码总是在服务器上执行
@@ -194,8 +203,15 @@ void UDemoCarReplicateComponent::SimulatedProxy_OnRep_ServerState()
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 	
-	ClientStartTransform = GetOwner()->GetActorTransform();
+	if (MeshOffsetRoot != nullptr)
+	{
+		ClientStartTransform.SetLocation(MeshOffsetRoot->GetComponentLocation());
+		ClientStartTransform.SetRotation(MeshOffsetRoot->GetComponentQuat());
+	}
 	ClientStartVelocity = MovementComponent->GetVelocity();
+
+	//根据服务器消息，直接设置Actor的位置，Collision也被同步设置
+	GetOwner()->SetActorTransform(ServerState.Transform);
 }
 
 void UDemoCarReplicateComponent::AutonomousProxy_OnRep_ServerState()
