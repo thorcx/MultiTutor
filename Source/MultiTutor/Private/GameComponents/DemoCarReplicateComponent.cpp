@@ -84,14 +84,30 @@ void UDemoCarReplicateComponent::ClientTick(float DeltaTime)
 	{
 		return;
 	}
+	if (MovementComponent == nullptr) return;
+
 	FVector TargetLocation = ServerState.Transform.GetLocation();
 	FQuat   TargetRotation = ServerState.Transform.GetRotation();
 	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
 	FVector StartLocation = ClientStartTransform.GetLocation();
 	FQuat	StartRotation = ClientStartTransform.GetRotation();
 	
+	//采用立方插值
+
+	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
+
+	//Velocity单位是米/每秒，所有最后要转UE单位centimeter,需乘100
+	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
+
+	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
+
+	FVector NewLocation = FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
 	
-	FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
+	FVector NewDerivative = FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative;
+
+	MovementComponent->SetVelocity(NewVelocity);
+	//FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
 
 	FQuat   NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
 
@@ -144,9 +160,13 @@ void UDemoCarReplicateComponent::OnRep_ServerState()
 
 void UDemoCarReplicateComponent::SimulatedProxy_OnRep_ServerState()
 {
+	//服务器响应到达，开始计时，并且快照当前SimulatedProxy的本地状态，为插值计算做准备 
+	if (MovementComponent == nullptr) return;
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
+	
 	ClientStartTransform = GetOwner()->GetActorTransform();
+	ClientStartVelocity = MovementComponent->GetVelocity();
 }
 
 void UDemoCarReplicateComponent::AutonomousProxy_OnRep_ServerState()
