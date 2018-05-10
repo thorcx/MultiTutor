@@ -5,6 +5,7 @@
 
 // Sets default values for this component's properties
 UDemoCarReplicateComponent::UDemoCarReplicateComponent()
+	:ClientSimulatedTime(0.0f)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -156,7 +157,8 @@ void UDemoCarReplicateComponent::InterpolateRotation(float LerpRatio)
 //这里的代码总是在服务器上执行
 void UDemoCarReplicateComponent::Server_SendMove_Implementation(FDemoCarMove Move)
 {
-
+	if (MovementComponent == nullptr) return;
+	ClientSimulatedTime += Move.DeltaTime;
 
 
 	//Server接到信息后不直接同步，而是SimulateMove
@@ -172,6 +174,17 @@ void UDemoCarReplicateComponent::Server_SendMove_Implementation(FDemoCarMove Mov
 
 bool UDemoCarReplicateComponent::Server_SendMove_Validate(FDemoCarMove Move)
 {
+	//如果从客户端传来的DeltaTime被篡改，累加的时间会超出服务器当前时间，可以认为是作弊
+	float ProposedTime = ClientSimulatedTime + Move.DeltaTime;
+	bool ClientNotRunningAhead = ProposedTime < GetWorld()->TimeSeconds;
+	if (!ClientNotRunningAhead)
+	{
+		return false;
+	}
+	if (!Move.IsValid())
+	{
+		return false;
+	}
 	return true;
 }
 

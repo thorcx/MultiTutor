@@ -59,9 +59,9 @@ FDemoCarMove UDemoCarMoveComponent::CreateMove(float DeltaTime)
 	FDemoCarMove Move;
 	Move.DeltaTime = DeltaTime;
 	Move.steeringThrow = SteeringThrow;
-	Move.Throttle = Throttle;
+	Move.Throttle = Throttle ;
 	Move.Time = GetWorld()->TimeSeconds;
-	//todo time
+	
 	return Move;
 }
 

@@ -106,6 +106,9 @@ private:
 	FTransform ClientStartTransform;
 	FVector ClientStartVelocity;
 
+	//客户端开始运行的时间累积，用于反作弊
+	float ClientSimulatedTime;
+
 	UPROPERTY()
 	UDemoCarMoveComponent*	MovementComponent;
 
