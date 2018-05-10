@@ -85,11 +85,18 @@ void UDemoCarReplicateComponent::ClientTick(float DeltaTime)
 		return;
 	}
 	FVector TargetLocation = ServerState.Transform.GetLocation();
+	FQuat   TargetRotation = ServerState.Transform.GetRotation();
 	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
-	FVector StartLocation = ClientStartLocation;
+	FVector StartLocation = ClientStartTransform.GetLocation();
+	FQuat	StartRotation = ClientStartTransform.GetRotation();
+	
+	
 	FVector NewLocation = FMath::LerpStable(StartLocation, TargetLocation, LerpRatio);
 
+	FQuat   NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
+
 	GetOwner()->SetActorLocation(NewLocation);
+	GetOwner()->SetActorRotation(NewRotation);
 }
 
 //这里的代码总是在服务器上执行
@@ -139,7 +146,7 @@ void UDemoCarReplicateComponent::SimulatedProxy_OnRep_ServerState()
 {
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
-	ClientStartLocation = GetOwner()->GetActorLocation();
+	ClientStartTransform = GetOwner()->GetActorTransform();
 }
 
 void UDemoCarReplicateComponent::AutonomousProxy_OnRep_ServerState()
