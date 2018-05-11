@@ -5,18 +5,29 @@
 
 
 AMovingPlatformBaseActor::AMovingPlatformBaseActor()
+	:Speed(20.0f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetMobility(EComponentMobility::Movable);
 }
 
+void AMovingPlatformBaseActor::BeginPlay()
+{
+	Super::BeginPlay();
+	if (HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+}
+
 void AMovingPlatformBaseActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (HasAuthority())
+	if (!HasAuthority())
 	{
 		FVector location = GetActorLocation();
-		location += FVector(3.0f * DeltaTime, 0.0f, 0.0f);
+		location += FVector(Speed * DeltaTime, 0.0f, 0.0f);
 		SetActorLocation(location);
 	}
 }
