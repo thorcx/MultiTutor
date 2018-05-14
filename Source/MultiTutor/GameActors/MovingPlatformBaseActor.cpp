@@ -19,15 +19,45 @@ void AMovingPlatformBaseActor::BeginPlay()
 		SetReplicates(true);
 		SetReplicateMovement(true);
 	}
+
+	GlobalStartLocation = GetActorLocation();
+	GlobalTargetLocation = GetTransform().TransformPosition(TargetLocation);
+	TotalLength = (GlobalTargetLocation - GlobalStartLocation).Size();
 }
 
 void AMovingPlatformBaseActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!HasAuthority())
+	if (ActiveTriggers > 0)
 	{
-		FVector location = GetActorLocation();
-		location += FVector(Speed * DeltaTime, 0.0f, 0.0f);
-		SetActorLocation(location);
+		if (HasAuthority())
+		{
+			FVector currentLocation = GetActorLocation();
+			float currentLength = (currentLocation - GlobalStartLocation).Size();
+
+			if (currentLength >= TotalLength)
+			{
+				FVector temp = GlobalStartLocation;
+				GlobalStartLocation = GlobalTargetLocation;
+				GlobalTargetLocation = temp;
+			}
+
+			MoveDirection = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
+			currentLocation += MoveDirection *Speed *DeltaTime;
+			SetActorLocation(currentLocation);
+		}
+	}
+}
+
+void AMovingPlatformBaseActor::AddActiveTrigger()
+{
+	ActiveTriggers++;
+}
+
+void AMovingPlatformBaseActor::RemoveActiveTrigger()
+{
+	if (ActiveTriggers > 0)
+	{
+		ActiveTriggers--;
 	}
 }
