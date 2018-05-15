@@ -24,5 +24,9 @@ void UMPGameInstance::Host()
 
 void UMPGameInstance::Join(FString &Address)
 {
-
+	APlayerController *controller = GetFirstLocalPlayerController();
+	if (controller)
+	{
+		controller->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+	}
 }
