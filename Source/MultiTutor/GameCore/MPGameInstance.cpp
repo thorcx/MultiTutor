@@ -23,6 +23,15 @@ void UMPGameInstance::LoadMenu()
 	{
 		UUserWidget *mainMenu = CreateWidget<UUserWidget>(this, MenuClass);
 		mainMenu->AddToViewport();
+		APlayerController *controller = GetFirstLocalPlayerController();
+		if (controller)
+		{
+			FInputModeUIOnly InputModeData;
+			InputModeData.SetWidgetToFocus(mainMenu->TakeWidget());
+			InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			controller->SetInputMode(InputModeData);
+			controller->bShowMouseCursor = true;
+		}
 	}
 }
 
