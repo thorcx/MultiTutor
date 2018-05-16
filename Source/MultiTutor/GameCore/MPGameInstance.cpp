@@ -17,6 +17,15 @@ void UMPGameInstance::Init()
 	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *MenuClass->GetName());
 }
 
+void UMPGameInstance::LoadMenu()
+{
+	if (MenuClass != nullptr)
+	{
+		UUserWidget *mainMenu = CreateWidget<UUserWidget>(this, MenuClass);
+		mainMenu->AddToViewport();
+	}
+}
+
 void UMPGameInstance::Host()
 {
 	UWorld *world = GetWorld();
