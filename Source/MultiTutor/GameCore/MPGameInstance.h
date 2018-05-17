@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "GameInterfaces/MultiGameInterface.h"
 #include "MPGameInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MULTITUTOR_API UMPGameInstance : public UGameInstance
+class MULTITUTOR_API UMPGameInstance : public UGameInstance, public IMultiGameInterface
 {
 	GENERATED_BODY()
 
@@ -19,6 +20,11 @@ public:
 
 	virtual void Init();
 	
+	virtual void HostMPGame() override;
+
+	virtual void JoinMPGame() override;
+
+
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu();
 

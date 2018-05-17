@@ -3,6 +3,7 @@
 #include "MPGameInstance.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "GameUI/MainMenu.h"
 UMPGameInstance::UMPGameInstance(const FObjectInitializer &Initializer)
 {
 	ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/UI/WBP_MainMenu"));
@@ -17,11 +18,23 @@ void UMPGameInstance::Init()
 	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *MenuClass->GetName());
 }
 
+void UMPGameInstance::HostMPGame()
+{
+	Host();
+}
+
+void UMPGameInstance::JoinMPGame()
+{
+	//Join();
+}
+
 void UMPGameInstance::LoadMenu()
 {
 	if (MenuClass != nullptr)
 	{
-		UUserWidget *mainMenu = CreateWidget<UUserWidget>(this, MenuClass);
+		//UUserWidget *mainMenu = CreateWidget<UUserWidget>(this, MenuClass);
+		
+		UMainMenu *mainMenu = CreateWidget<UMainMenu>(this, MenuClass);
 		mainMenu->AddToViewport();
 		APlayerController *controller = GetFirstLocalPlayerController();
 		if (controller)
@@ -32,6 +45,7 @@ void UMPGameInstance::LoadMenu()
 			controller->SetInputMode(InputModeData);
 			controller->bShowMouseCursor = true;
 		}
+		mainMenu->SetMGInterface(this);
 	}
 }
 

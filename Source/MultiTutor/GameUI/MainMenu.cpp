@@ -5,6 +5,11 @@
 
 
 
+void UMainMenu::SetMGInterface(IMultiGameInterface *Interface)
+{
+	MGInterface = Interface;
+}
+
 bool UMainMenu::Initialize()
 {
 	bool success = Super::Initialize();
@@ -18,5 +23,8 @@ bool UMainMenu::Initialize()
 
 void UMainMenu::OnHostClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("GOGOGO"));
+	if (MGInterface)
+	{
+		MGInterface->HostMPGame();
+	}
 }

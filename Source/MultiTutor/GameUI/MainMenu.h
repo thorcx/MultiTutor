@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameInterfaces/MultiGameInterface.h"
 #include "MainMenu.generated.h"
 
 /**
@@ -14,6 +15,9 @@ class MULTITUTOR_API UMainMenu : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void SetMGInterface(IMultiGameInterface *Interface);
+	
 protected:
 
 	virtual bool Initialize() override;
@@ -28,4 +32,6 @@ private:
 	UFUNCTION()
 	void OnHostClicked();
 
+
+	IMultiGameInterface* MGInterface;
 };
