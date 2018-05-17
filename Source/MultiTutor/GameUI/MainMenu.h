@@ -4,23 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "GameInterfaces/MultiGameInterface.h"
+#include "MenuBaseWidget.h"
 #include "MainMenu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MULTITUTOR_API UMainMenu : public UUserWidget
+class MULTITUTOR_API UMainMenu : public UMenuBaseWidget
 {
 	GENERATED_BODY()
 
-public:
-	void SetMGInterface(IMultiGameInterface *Interface);
-	
-	void Setup();
 
-	void TearDown();
 protected:
 
 	virtual bool Initialize() override;
@@ -31,6 +26,9 @@ private:
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton *JoinButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton *QuitGame;
 
 	//二级菜单的Join
 	UPROPERTY(meta = (BindWidget))
@@ -49,6 +47,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UWidget *MainMenu;
 
+
+
 	UPROPERTY(meta = (BindWidget))
 	class UEditableTextBox *IP_TB;
 
@@ -65,5 +65,8 @@ private:
 	UFUNCTION()
 	void BackToMain();
 
-	IMultiGameInterface* MGInterface;
+	UFUNCTION()
+	void QuitMainGame();
+
+	
 };

@@ -20,13 +20,19 @@ public:
 
 	virtual void Init();
 	
+	//~BeginInterface
 	virtual void HostMPGame() override;
 
 	virtual void JoinMPGame(FString &IPAddress) override;
 
+	virtual void LoadMainMenu() override;
+	//~End Interface
 
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadInGameMenu();
 
 	UFUNCTION(Exec)
 	void Host();
@@ -37,5 +43,8 @@ public:
 private:
 	TSubclassOf<class UUserWidget> MenuClass;
 
-	class UMainMenu* MenuInstance;
+	TSubclassOf<class UUserWidget> InGameMenuClass;
+
+	//当前菜单指针
+	class UMenuBaseWidget* MenuInstance;
 };

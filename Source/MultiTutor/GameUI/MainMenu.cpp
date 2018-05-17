@@ -5,42 +5,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 
-void UMainMenu::SetMGInterface(IMultiGameInterface *Interface)
-{
-	MGInterface = Interface;
-}
 
-void UMainMenu::Setup()
-{
-	AddToViewport();
-	UWorld *world = GetWorld();
-	if (world == nullptr) return;
-	APlayerController *controller = world->GetFirstPlayerController();
-	if (controller)
-	{
-		FInputModeUIOnly InputModeData;
-		InputModeData.SetWidgetToFocus(this->TakeWidget());
-		InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		controller->SetInputMode(InputModeData);
-		controller->bShowMouseCursor = true;
-	}
-}
-
-void UMainMenu::TearDown()
-{
-	RemoveFromViewport();
-	UWorld *world = GetWorld();
-	if (world == nullptr) return;
-	APlayerController *controller = world->GetFirstPlayerController();
-	if (controller)
-	{
-		FInputModeGameOnly InputModeData;
-		//InputModeData.SetWidgetToFocus(this->TakeWidget());
-		//InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		controller->SetInputMode(InputModeData);
-		controller->bShowMouseCursor = false;
-	}
-}
 
 bool UMainMenu::Initialize()
 {
@@ -54,6 +19,11 @@ bool UMainMenu::Initialize()
 	{
 		JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OnJoinInMainClicked);
 	}
+	if (QuitGame)
+	{
+		QuitGame->OnClicked.AddDynamic(this, &UMainMenu::QuitMainGame);
+	}
+
 	if (Join)
 	{
 		Join->OnClicked.AddDynamic(this, &UMainMenu::JoinGame);
@@ -94,4 +64,12 @@ void UMainMenu::BackToMain()
 {
 	if (MenuSwitcher)
 		MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+void UMainMenu::QuitMainGame()
+{
+	UWorld *World = GetWorld();
+	if (World == nullptr) return;
+	APlayerController *Controller = World->GetFirstPlayerController();
+	Controller->ConsoleCommand("quit");
 }

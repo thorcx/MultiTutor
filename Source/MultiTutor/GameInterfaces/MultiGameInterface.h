@@ -25,4 +25,6 @@ public:
 	virtual void HostMPGame() = 0;
 
 	virtual void JoinMPGame(FString &IPAddress) = 0;
+
+	virtual void LoadMainMenu() = 0;
 };
