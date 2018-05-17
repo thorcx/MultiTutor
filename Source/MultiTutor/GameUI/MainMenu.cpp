@@ -2,8 +2,8 @@
 
 #include "MainMenu.h"
 #include "Components/Button.h"
-
-
+#include "Components/WidgetSwitcher.h"
+#include "Components/EditableTextBox.h"
 
 void UMainMenu::SetMGInterface(IMultiGameInterface *Interface)
 {
@@ -50,6 +50,20 @@ bool UMainMenu::Initialize()
 	{
 		HostButton->OnClicked.AddDynamic(this, &UMainMenu::OnHostClicked);
 	}
+	if (JoinButton)
+	{
+		JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OnJoinInMainClicked);
+	}
+	if (Join)
+	{
+		Join->OnClicked.AddDynamic(this, &UMainMenu::JoinGame);
+	}
+	if (Cancel)
+	{
+		Cancel->OnClicked.AddDynamic(this, &UMainMenu::BackToMain);
+	}
+
+
 	return true;
 }
 
@@ -59,4 +73,25 @@ void UMainMenu::OnHostClicked()
 	{
 		MGInterface->HostMPGame();
 	}
+}
+
+void UMainMenu::OnJoinInMainClicked()
+{
+	if(MenuSwitcher)
+		MenuSwitcher->SetActiveWidget(JoinMenu);
+}
+
+void UMainMenu::JoinGame()
+{
+	FString Ip = IP_TB->GetText().ToString();
+	if (MGInterface)
+	{
+		MGInterface->JoinMPGame(Ip);
+	}
+}
+
+void UMainMenu::BackToMain()
+{
+	if (MenuSwitcher)
+		MenuSwitcher->SetActiveWidget(MainMenu);
 }

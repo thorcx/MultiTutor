@@ -24,5 +24,5 @@ public:
 	//建主机
 	virtual void HostMPGame() = 0;
 
-	virtual void JoinMPGame() = 0;
+	virtual void JoinMPGame(FString &IPAddress) = 0;
 };

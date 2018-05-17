@@ -22,7 +22,7 @@ public:
 	
 	virtual void HostMPGame() override;
 
-	virtual void JoinMPGame() override;
+	virtual void JoinMPGame(FString &IPAddress) override;
 
 
 	UFUNCTION(BlueprintCallable)

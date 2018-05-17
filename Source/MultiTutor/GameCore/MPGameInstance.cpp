@@ -23,9 +23,9 @@ void UMPGameInstance::HostMPGame()
 	Host();
 }
 
-void UMPGameInstance::JoinMPGame()
+void UMPGameInstance::JoinMPGame(FString &IPAddress)
 {
-	//Join();
+	Join(IPAddress);
 }
 
 void UMPGameInstance::LoadMenu()
@@ -56,6 +56,10 @@ void UMPGameInstance::Host()
 
 void UMPGameInstance::Join(FString &Address)
 {
+	if (MenuInstance != nullptr)
+	{
+		MenuInstance->TearDown();
+	}
 	APlayerController *controller = GetFirstLocalPlayerController();
 	if (controller)
 	{

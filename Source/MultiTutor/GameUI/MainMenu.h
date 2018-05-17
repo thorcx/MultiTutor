@@ -32,9 +32,38 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton *JoinButton;
 
+	//二级菜单的Join
+	UPROPERTY(meta = (BindWidget))
+	class UButton *Join;
+	
+	//二级菜单的Cancel
+	UPROPERTY(meta = (BindWidget))
+	class UButton *Cancel;
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidgetSwitcher *MenuSwitcher; 
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidget *JoinMenu;
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidget *MainMenu;
+
+	UPROPERTY(meta = (BindWidget))
+	class UEditableTextBox *IP_TB;
+
 	UFUNCTION()
 	void OnHostClicked();
 
+	//主菜单内Join
+	UFUNCTION()
+	void OnJoinInMainClicked();
+
+	UFUNCTION()
+	void JoinGame();
+
+	UFUNCTION()
+	void BackToMain();
 
 	IMultiGameInterface* MGInterface;
 };
