@@ -18,6 +18,9 @@ class MULTITUTOR_API UMainMenu : public UUserWidget
 public:
 	void SetMGInterface(IMultiGameInterface *Interface);
 	
+	void Setup();
+
+	void TearDown();
 protected:
 
 	virtual bool Initialize() override;

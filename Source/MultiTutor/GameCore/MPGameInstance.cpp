@@ -34,23 +34,19 @@ void UMPGameInstance::LoadMenu()
 	{
 		//UUserWidget *mainMenu = CreateWidget<UUserWidget>(this, MenuClass);
 		
-		UMainMenu *mainMenu = CreateWidget<UMainMenu>(this, MenuClass);
-		mainMenu->AddToViewport();
-		APlayerController *controller = GetFirstLocalPlayerController();
-		if (controller)
-		{
-			FInputModeUIOnly InputModeData;
-			InputModeData.SetWidgetToFocus(mainMenu->TakeWidget());
-			InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			controller->SetInputMode(InputModeData);
-			controller->bShowMouseCursor = true;
-		}
-		mainMenu->SetMGInterface(this);
+		MenuInstance = CreateWidget<UMainMenu>(this, MenuClass);
+	
+		MenuInstance->Setup();
+		MenuInstance->SetMGInterface(this);
 	}
 }
 
 void UMPGameInstance::Host()
 {
+	if (MenuInstance != nullptr)
+	{
+		MenuInstance->TearDown();
+	}
 	UWorld *world = GetWorld();
 	if (world)
 	{
